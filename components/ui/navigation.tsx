@@ -26,17 +26,6 @@ const Navigation = () => {
                         </NavigationMenuLink>
                     </Link>
                 </NavigationMenuItem>
-                <NavigationMenuItem>
-                    <Switch  onCheckedChange={
-                        (checked) => {
-                            if (checked) {
-                                document.body.classList.add('dark')
-                            } else {
-                                document.body.classList.remove('dark')
-                            }
-                        }
-                    } />
-                </NavigationMenuItem>
             </NavigationMenuList>
         </NavigationMenu>
     )

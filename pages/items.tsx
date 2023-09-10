@@ -26,6 +26,9 @@ import {
 import {Button} from "@/components/ui/button";
 import {Label} from "@radix-ui/react-label";
 import {Input} from "@/components/ui/input";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import Category from "@/types/Category";
+import {Option} from "lucide-react";
 
 export default function Missions() {
     const {push} = useRouter();
@@ -37,22 +40,28 @@ export default function Missions() {
         id: number,
         name: string,
         description: string,
-        itemCategory: {
-            id: number,
-            name: string,
-            description: string,
-        }
+        itemCategory: Category,
     }
 
 
     const [columns, setColumns] = useState<ColumnDef<Item>[]>([]);
     const [data, setData] = useState([]);
+    const [categories, setCategories] = useState<Category[]>([]);
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});
     const [cookie] = useCookies(['privilegeType', 'token']);
     const [selectedItem, setSelectedItem] = useState<Item>(null);
+    const [selectedCategory, setSelectedCategory] = useState<string>(null);
     const ac: typeof Action[] = [];
+
+    useEffect(() => {
+        axios.get('http://localhost:8080/api/v1/itemcategories')
+            .then((response) => {
+                setCategories(response.data);
+            });
+    }, [showEditDialog]);
+
     if (cookie.privilegeType === 'ADMIN') {
         ac.push(
             {
@@ -116,45 +125,130 @@ export default function Missions() {
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Are you sure absolutely sure?</DialogTitle>
-                        <DialogDescription>
-                            This action cannot be undone. This will permanently delete the record.
-                        </DialogDescription>
-                        <DialogFooter>
-                            <Button onClick={() => {setShowDeleteDialog(false)}}>Cancel</Button>
-                            <Button onClick={() => {
-                                setShowDeleteDialog(false);
-                                setShow(false);
-                                axios.delete(`http://localhost:8080/api/v1/items/${selectedItem.id}`, {
-                                    headers: {
-                                        Authorization: `Bearer ${cookie.token}`
-                                    }}).then(async (response) => {
-                                        await push('/items');
-                                    }).catch((error) => {
-                                        console.log(error);
-                                    });
-                            }} variant="destructive">Yes, delete record</Button>
-                        </DialogFooter>
                     </DialogHeader>
+                    <DialogDescription>
+                        This action cannot be undone. This will permanently delete the record.
+                    </DialogDescription>
+                    <DialogFooter>
+                        <Button onClick={() => {
+                            setShowDeleteDialog(false)
+                        }}>Cancel</Button>
+                        <Button onClick={() => {
+                            setShowDeleteDialog(false);
+                            setShow(false);
+                            axios.delete(`http://localhost:8080/api/v1/items/${selectedItem.id}`, {
+                                headers: {
+                                    Authorization: `Bearer ${cookie.token}`
+                                }
+                            }).then(async (response) => {
+                                await push('/items');
+                            }).catch((error) => {
+                                console.log(error);
+                            });
+                        }} variant="destructive">Yes, delete record</Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
             <Dialog open={showEditDialog}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Edit Item</DialogTitle>
-                        <DialogDescription>
-
-                        </DialogDescription>
                     </DialogHeader>
+                    <DialogDescription>
+                        <form>
+                            <div className="grid gap-2">
+                                <div className="grid gap-1">
+                                    <Label className="sr-only" htmlFor="name">
+                                        Name
+                                    </Label>
+                                    <Input
+                                        id="name"
+                                        placeholder="Name"
+                                        type="text"
+                                        autoCapitalize="none"
+                                        autoComplete="name"
+                                        autoCorrect="off"
+                                        defaultValue={selectedItem ? selectedItem.name : ''}
+                                    />
+                                </div>
+                                <div className="grid gap-1">
+                                    <Label className="sr-only" htmlFor="description">
+                                        Description
+                                    </Label>
+                                    <Input
+                                        id="description"
+                                        placeholder="Description"
+                                        type="text"
+                                        autoCapitalize="none"
+                                        autoComplete="description"
+                                        autoCorrect="off"
+                                        defaultValue={selectedItem ? selectedItem.description : ''}
+                                    />
+                                </div>
+                                <div className="grid gap-1">
+                                    <Label className="sr-only" htmlFor="itemCategory">
+                                        Item Category
+                                    </Label>
+                                    <Select
+                                        onValueChange={(value) => {
+                                            setSelectedCategory(value);
+                                        }}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue
+                                                placeholder={selectedItem ? selectedItem.itemCategory.name + ' is the current category' : '' }/>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {
+                                                categories.map((category) => {
+                                                    return <SelectItem
+                                                        value={category.id.toString()}>{category.name}</SelectItem>
+                                                })
+                                            }
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <Button onClick={() => {
+                                    setShowEditDialog(false);
+
+                                }
+                                }>Cancel</Button>
+                                <Button onClick={() => {
+                                    setShowEditDialog(false);
+                                    setShow(false);
+                                    axios.put(`http://localhost:8080/api/v1/items`, {
+                                        id: selectedItem.id,
+                                        name: document.getElementById('name').value,
+                                        description: document.getElementById('description').value,
+                                        itemCategory: {
+                                            id: selectedCategory,
+                                            name: categories.find((category) => category.id === parseInt(selectedCategory)).name,
+                                            description: categories.find((category) => category.id === parseInt(selectedCategory)).description,
+                                        }
+                                    }, {
+                                        headers: {
+                                            Authorization: `Bearer ${cookie.token}`
+                                        },
+                                    }).then(async (response) => {
+                                        await push('/items');
+                                    }).catch((error) => {
+                                        console.log(error);
+                                    });
+                                }} variant="outline">Save</Button>
+                            </div>
+                        </form>
+                    </DialogDescription>
                 </DialogContent>
             </Dialog>
 
-            {show && (
-                <>
-                    {/* @ts-ignore */}
-                    <DataTable columns={columns} data={items} table={table} actions={ac}/>
-                    <DataTablePagination table={table}/>
-                </>
-            )}
+            {
+                show && (
+                    <>
+                        <DataTable columns={columns} data={items} table={table} actions={ac}/>
+                        <DataTablePagination table={table}/>
+                    </>
+                )
+            }
         </div>
     )
 }
