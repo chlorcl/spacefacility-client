@@ -16,6 +16,7 @@ export default function App({Component, pageProps}: AppProps) {
         <div className="flex flex-col">
             <Navigation/>
             <Component {...pageProps} />
+
         </div>
     )
 }

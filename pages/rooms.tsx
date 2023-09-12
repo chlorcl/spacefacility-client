@@ -28,29 +28,30 @@ import {Label} from "@/components/ui/label";
 import {Input} from "@/components/ui/input";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 
-export default function Missions() {
+export default function Rooms() {
 
     const {push} = useRouter();
     const [show, setShow] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [showEditDialog, setShowEditDialog] = useState(false);
 
-    type Mission = {
+    type Room = {
         id: number,
-        name: string,
         description: string,
-        done: boolean,
-        purpose: string,
+        name: string,
+        area_id: {
+            id: number,
+            name: string,
+        },
     }
 
-    const [columns, setColumns] = useState<ColumnDef<Mission>[]>([]);
+    const [columns, setColumns] = useState<ColumnDef<Room>[]>([]);
     const [data, setData] = useState([]);
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});
     const [cookie] = useCookies(['privilegeType', 'token']);
-    const [selectedMission, setSelectedMission] = useState<Mission>(null);
-    const [selectedDone, setSelectedDone] = useState<boolean>(false);
+    const [selectedRoom, setSelectedRoom] = useState<Room>(null);
     const ac: typeof Action[] = [];
 
     if (cookie.privilegeType === 'ADMIN') {
@@ -58,17 +59,17 @@ export default function Missions() {
             {
                 name: 'edit',
                 label: 'Edit',
-                onClick: (mission: Mission) => {
+                onClick: (room: Room) => {
                     setShowEditDialog(true);
-                    setSelectedMission(mission);
+                    setSelectedRoom(room);
                 },
             },
             {
                 name: 'delete',
                 label: <p className="text-red-700">Delete</p>,
-                onClick: (mission: Mission) => {
+                onClick: (room: Room) => {
                     setShowDeleteDialog(true);
-                    setSelectedMission(mission);
+                    setSelectedRoom(room);
                 },
             },
         );
@@ -90,16 +91,15 @@ export default function Missions() {
     });
 
     useEffect(() => {
-        axios.get('http://localhost:8080/api/v1/missions')
+        axios.get('http://localhost:8080/api/v1/rooms')
             .then((response) => {
                 setData(response.data);
-                const result = response.data.map((mission: Mission) => {
+                const result = response.data.map((room: Room) => {
                     return {
-                        id: mission.id,
-                        name: mission.name,
-                        description: mission.description,
-                        done: mission.done,
-                        purpose: mission.purpose,
+                        id: room.id,
+                        name: room.name,
+                        description: room.description,
+                        area_id: room.area_id
                     }
                 });
                 setColumns(useAutoColumns(result));
@@ -124,12 +124,12 @@ export default function Missions() {
                         <Button onClick={() => {
                             setShowDeleteDialog(false);
                             setShow(false);
-                            axios.delete(`http://localhost:8080/api/v1/missions/${selectedMission.id}`, {
+                            axios.delete(`http://localhost:8080/api/v1/rooms/${selectedRoom.id}`, {
                                 headers: {
                                     Authorization: `Bearer ${cookie.token}`
                                 }
                             }).then(async (response) => {
-                                await push('/missions');
+                                await push('/rooms');
                             }).catch((error) => {
                                 console.log(error);
                             });
@@ -155,7 +155,7 @@ export default function Missions() {
                                     autoCapitalize="none"
                                     autoComplete="name"
                                     autoCorrect="off"
-                                    defaultValue={selectedMission ? selectedMission.name : ''}
+                                    defaultValue={selectedRoom ? selectedRoom.name : ''}
                                 />
                             </div>
                             <div className="grid gap-1">
@@ -169,39 +169,21 @@ export default function Missions() {
                                     autoCapitalize="none"
                                     autoComplete="description"
                                     autoCorrect="off"
-                                    defaultValue={selectedMission ? selectedMission.description : ''}
+                                    defaultValue={selectedRoom ? selectedRoom.description : ''}
                                 />
                             </div>
                             <div className="grid gap-1">
-                                <Label className="sr-only" htmlFor="purpose">
-                                    Done
-                                </Label>
-                                <Select onValueChange={(value) => {
-                                    setSelectedDone(value === 'Yes');
-                                }}>
-                                    <SelectTrigger>
-                                        <SelectValue>
-                                            {selectedMission ? selectedMission.done ? 'Yes' : 'No' : ''}
-                                        </SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Yes">Yes</SelectItem>
-                                        <SelectItem value="No">No</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="grid gap-1">
-                                <Label className="sr-only" htmlFor="purpose">
-                                    Purpose
+                                <Label className="sr-only" htmlFor="Area_id">
+                                    Area_id
                                 </Label>
                                 <Input
-                                    id="purpose"
-                                    placeholder="Purpose"
+                                    id="Area_id"
+                                    placeholder="Area_id"
                                     type="text"
                                     autoCapitalize="none"
-                                    autoComplete="purpose"
+                                    autoComplete="Area_id"
                                     autoCorrect="off"
-                                    defaultValue={selectedMission ? selectedMission.purpose : ''}
+                                    defaultValue={selectedRoom ? selectedRoom.area_id : ''}
                                 />
                             </div>
                             <div className="grid gap-1">
@@ -211,18 +193,17 @@ export default function Missions() {
                                 <Button variant="outline" onClick={() => {
                                     setShowEditDialog(false);
                                     setShow(false);
-                                    axios.put(`http://localhost:8080/api/v1/missions`, {
-                                        id: selectedMission.id,
+                                    axios.put(`http://localhost:8080/api/v1/rooms`, {
+                                        id: selectedRoom.id,
                                         name: document.getElementById('name').value,
                                         description: document.getElementById('description').value,
-                                        done: selectedDone,
-                                        purpose: document.getElementById('purpose').value,
+                                        area_id: document.getElementById('Area_id').value,
                                     }, {
                                         headers: {
                                             Authorization: `Bearer ${cookie.token}`
                                         }
                                     }).then(async (response) => {
-                                        await push('/missions');
+                                        await push('/rooms');
                                     }).catch((error) => {
                                         console.log(error);
                                     });
@@ -240,5 +221,5 @@ export default function Missions() {
                 </>
             )}
         </div>
-)
+    )
 }

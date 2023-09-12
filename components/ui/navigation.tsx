@@ -7,6 +7,7 @@ import {
 import Link from "next/link";
 import {Switch} from "@/components/ui/switch";
 import React from "react";
+import {Button} from "@/components/ui/button";
 
 const Navigation = () => {
     return (
@@ -23,6 +24,20 @@ const Navigation = () => {
                     <Link href="/items" legacyBehavior passHref>
                         <NavigationMenuLink className={navigationMenuTriggerStyle()} >
                             Items
+                        </NavigationMenuLink>
+                    </Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                    <Link href="/rooms" legacyBehavior passHref>
+                        <NavigationMenuLink className={navigationMenuTriggerStyle()} >
+                            Rooms
+                        </NavigationMenuLink>
+                    </Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                    <Link href="/professions" legacyBehavior passHref>
+                        <NavigationMenuLink className={navigationMenuTriggerStyle()} >
+                            Professions
                         </NavigationMenuLink>
                     </Link>
                 </NavigationMenuItem>
