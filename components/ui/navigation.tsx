@@ -7,6 +7,7 @@ import {
 import Link from "next/link";
 import {Switch} from "@/components/ui/switch";
 import React from "react";
+import {LogOut} from "lucide-react";
 
 const Navigation = () => {
     return (
@@ -23,6 +24,13 @@ const Navigation = () => {
                     <Link href="/items" legacyBehavior passHref>
                         <NavigationMenuLink className={navigationMenuTriggerStyle()} >
                             Items
+                        </NavigationMenuLink>
+                    </Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                    <Link href="/logout" legacyBehavior passHref>
+                        <NavigationMenuLink className={navigationMenuTriggerStyle()} >
+                            <LogOut/>
                         </NavigationMenuLink>
                     </Link>
                 </NavigationMenuItem>
